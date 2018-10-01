@@ -42,7 +42,7 @@
 </table>
 
 <table ng-controller="currentAmounts" id="currentAmounts">
-    <tr><th colspan="2"><a href="/currentAmounts">Current $ Amounts</a>
+    <tr><th colspan="3"><a href="/currentAmounts">Current $ Amounts</a>
     <tr><td>Created<td>#: {{currentAmounts.created.numEvents}}<td>${{(currentAmounts.created.currentAmount | number:2)}}
     <tr><td>Assigned<td>#: {{currentAmounts.assigned.numEvents}}<td>${{(currentAmounts.assigned.currentAmount | number:2)}}
     <tr><td>Completed<td>#: {{currentAmounts.completed.numEvents}}<td>${{(currentAmounts.completed.currentAmount | number:2)}}
