@@ -18,6 +18,9 @@ version of the application is built, you can use the `run.bat` or `run.sh` comma
 necessary for running Kinesalite locally to prevent the application from checking for valid security certificates.
 
 ### Running the application
+If running locally, the application assumes you have `kinesalite` and `dynalite` already installed and available in your PATH variable. 
+Those can be installed using `npm`, with `npm install -g kinesalite` for example. 
+
 By default, the application will make several endpoints available on http://localhost:8080, namely one for each metrics provider.
 The home page is an html page that uses Javascript/Angular to read each API endpoint sending Server Side Events and updates its
 respective table accordingly. You can run the application with custom configs by putting your own `application.properties` file
