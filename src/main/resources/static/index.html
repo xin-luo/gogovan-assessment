@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html ng-app="viz">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualizations</title>
+    <style>
+        table, tr, td, th {
+            border:1px solid black;
+            padding:2px;
+            border-collapse:collapse;
+            margin:10px;
+        }
+
+        table#counts td {
+            text-align: right;
+        }
+
+        table#averageTimes td:nth-child(2) {
+            text-align: right;
+        }
+
+        table#currentAmounts td:nth-child(2),td:nth-child(3) {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+<div>Very basic webpage hooking up to output of metric consumers</div>
+
+<table ng-controller="counts" id="counts">
+    <tr><th colspan="2"><a href="/counts">Counts</a>
+    <tr><td>Created:<td> {{counts.ordersCreated}}
+    <tr><td>Assigned:<td> {{counts.ordersAssigned}}
+    <tr><td>Completed:<td> {{counts.ordersCompleted}}
+    <tr><td>Cancelled:<td> {{counts.ordersCancelled}}
+</table>
+
+<table ng-controller="averageTimes" id="averageTimes">
+    <tr><th colspan="2"><a href="/averageTimes">Average Times</a>
+    <tr><td>To Response<td> {{averageTimes.averageResponseTime | number:2}} s
+    <tr><td>To Completion:<td> {{averageTimes.averageCompletionTime | number:2}} s
+</table>
+
+<table ng-controller="currentAmounts" id="currentAmounts">
+    <tr><th colspan="2"><a href="/currentAmounts">Current $ Amounts</a>
+    <tr><td>Created<td>#: {{currentAmounts.created.numEvents}}<td>${{(currentAmounts.created.currentAmount | number:2)}}
+    <tr><td>Assigned<td>#: {{currentAmounts.assigned.numEvents}}<td>${{(currentAmounts.assigned.currentAmount | number:2)}}
+    <tr><td>Completed<td>#: {{currentAmounts.completed.numEvents}}<td>${{(currentAmounts.completed.currentAmount | number:2)}}
+    <tr><td>Cancelled<td>#: {{currentAmounts.cancelled.numEvents}}<td>${{(currentAmounts.cancelled.currentAmount | number:2)}}
+</table>
+
+<div ng-controller="topRegions">
+    <table>
+    <tr><th colspan="2"><a href="/topRegions">Top Shipping From Regions</a>
+    <tr ng-repeat="(region, count) in topRegions.topShipFromRegions"><td>{{region}}<td>{{count}}
+    </table>
+
+    <table>
+        <tr><th colspan="2"><a href="/topRegions">Top Shipping To Regions</a>
+        <tr ng-repeat="(region, count) in topRegions.topShipToRegions"><td>{{region}}<td>{{count}}
+    </table>
+</div>
+
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.2/angular.min.js"></script>
+<script type='text/javascript'>
+
+    var app = angular.module('viz', []);
+
+    app.controller('counts', function($scope) {
+        var es = new EventSource("/counts");
+        es.onmessage = function(event) {
+            $scope.counts = JSON.parse(event.data);
+            $scope.$apply();
+        };
+    });
+
+    app.controller('averageTimes', function($scope) {
+        var es = new EventSource("/averageTimes");
+        es.onmessage = function(event) {
+            $scope.averageTimes = JSON.parse(event.data);
+            $scope.$apply();
+        };
+    });
+
+    app.controller('currentAmounts', function($scope) {
+        var es = new EventSource("/currentAmounts");
+        es.onmessage = function(event) {
+            $scope.currentAmounts = JSON.parse(event.data);
+            $scope.$apply();
+        };
+    });
+
+    app.controller('topRegions', function($scope) {
+        var es = new EventSource("/topRegions");
+        es.onmessage = function(event) {
+            $scope.topRegions = JSON.parse(event.data);
+            $scope.$apply();
+        };
+    });
+</script>
+</html>
