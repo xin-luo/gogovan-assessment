@@ -30,8 +30,10 @@ in the same folder as the `.jar` file.
 I wrote a few simple tests for the application, but they are pretty sparse due to the time limit given. I have green path tests
 for the metrics providers, as well as the event producers/consumers. With additional time, I'd have written some red path tests
 to see how the application behaves when given unusual/out of bounds inputs, as well as some tests on the Kinesis producer and
-processor classes.
+processor classes. Lastly, I would include some integration tests involving the REST endpoints and making sure the metrics are
+being sent properly.
 
 ### Video Links
 Explaining the code: https://www.youtube.com/watch?v=3_Vud8tRF5Y&feature=youtu.be
+
 Demoing the application: https://www.youtube.com/watch?v=hkcz5tSg8ic&feature=youtu.be
