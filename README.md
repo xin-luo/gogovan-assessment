@@ -33,6 +33,9 @@ to see how the application behaves when given unusual/out of bounds inputs, as w
 processor classes. Lastly, I would include some integration tests involving the REST endpoints and making sure the metrics are
 being sent properly.
 
+### Scaling Out
+By increasing the `producer.numDrivers` and `producer.numOrdersPerSecond` options, I was able to increase the throughput of the application to 10,000 orders created per second without much issue on my local machine. Attempting to do 100k/s was causing some of the metrics to be emitted with an additional delay.
+
 ### Video Links
 Explaining the code: https://www.youtube.com/watch?v=3_Vud8tRF5Y&feature=youtu.be
 
