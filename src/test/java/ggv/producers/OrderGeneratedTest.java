@@ -63,11 +63,8 @@ public class OrderGeneratedTest {
         when(configuration.getPctOrdersAssigned()).thenReturn(pctOrdersAssigned);
         when(producerFactory.get(any())).thenReturn(producer);
 
-        doReturn(processorQueue).when(processorFactory).get(any());
-
         doAnswer((invocation) -> {
-            processorFactory.get(invocation.getArgument(0));
-            processor.addFunction(invocation.getArgument(1));
+            processorFactory.callProcessorFunction(invocation.getArgument(0));
             return null;
         }).when(processorFactory).addFunction(any(), any());
 
@@ -117,11 +114,9 @@ public class OrderGeneratedTest {
         assertTrue(outputClasses.contains(OrderCancelledEvent.class));
 
         clazz = ArgumentCaptor.forClass(Class.class);
-        verify(processorFactory, times(1)).get(clazz.capture());
+        verify(processorFactory, times(1)).callProcessorFunction(clazz.capture());
         outputClasses = clazz.getAllValues();
         assertTrue(outputClasses.contains(OrderCreatedEvent.class));
-
-        verify(processor, times(1)).addFunction(any());
 
         for (int i = 1; i <= 1000; i++) {
             OrderCreatedEvent newOrderCreatedEvent = new OrderCreatedEvent(i, "from", "to", Instant.now(), Instant.now(), 55.5);
@@ -159,11 +154,9 @@ public class OrderGeneratedTest {
         assertTrue(outputClasses.contains(OrderCancelledEvent.class));
 
         clazz = ArgumentCaptor.forClass(Class.class);
-        verify(processorFactory, times(1)).get(clazz.capture());
+        verify(processorFactory, times(1)).callProcessorFunction(clazz.capture());
         outputClasses = clazz.getAllValues();
         assertTrue(outputClasses.contains(OrderAssignedEvent.class));
-
-        verify(processor, times(1)).addFunction(any());
 
         for (int i = 1; i <= 1000; i++) {
             OrderAssignedEvent orderAssignedEvent = new OrderAssignedEvent(i, Instant.now(), driverName);

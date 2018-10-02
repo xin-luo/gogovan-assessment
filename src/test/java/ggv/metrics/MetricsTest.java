@@ -1,7 +1,6 @@
 package ggv.metrics;
 
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisRecordProcessor;
 import ggv.utilities.KinesisRecordProcessorFactory;
 import ggv.utilities.pojo.*;
 import org.junit.Test;
@@ -11,8 +10,6 @@ import org.mockito.Mockito;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -22,8 +19,6 @@ import static org.mockito.Mockito.*;
 public class MetricsTest {
     private final ConfigurationProvider configuration = Mockito.mock(ConfigurationProvider.class);
     private final KinesisRecordProcessorFactory processorFactory = Mockito.mock(KinesisRecordProcessorFactory.class);
-    private final KinesisRecordProcessor processor = Mockito.mock(KinesisRecordProcessor.class);
-    private final BlockingQueue<KinesisRecordProcessor> processorQueue = new LinkedBlockingQueue<>();
 
     private final String[] regions = new String[]{"a", "b", "c"};
     private final String driverName = "driver";
@@ -57,17 +52,13 @@ public class MetricsTest {
     private TopRegions topRegions;
 
     public MetricsTest() {
-        processorQueue.add(processor);
         when(configuration.getTopShipRegionsNum()).thenReturn(numTopRegions);
 
         currentAmountsByStatus = new CurrentAmountsByStatus(processorFactory, configuration);
         topRegions = new TopRegions(processorFactory, configuration);
 
-        doReturn(processorQueue).when(processorFactory).get(any());
-
         doAnswer((invocation) -> {
-            processorFactory.get(invocation.getArgument(0));
-            processor.addFunction(invocation.getArgument(1));
+            processorFactory.callProcessorFunction(invocation.getArgument(0));
             return null;
         }).when(processorFactory).addFunction(any(), any());
     }
@@ -77,7 +68,7 @@ public class MetricsTest {
         averageTimes = new AverageTimes(processorFactory, configuration);
 
         ArgumentCaptor<Class> clazz = ArgumentCaptor.forClass(Class.class);
-        verify(processorFactory, times(4)).get(clazz.capture());
+        verify(processorFactory, times(4)).callProcessorFunction(clazz.capture());
 
         List<Class> outputClasses = clazz.getAllValues();
         assertTrue(outputClasses.contains(OrderCreatedEvent.class));
@@ -109,7 +100,7 @@ public class MetricsTest {
         currentAmountsByStatus = new CurrentAmountsByStatus(processorFactory, configuration);
 
         ArgumentCaptor<Class> clazz = ArgumentCaptor.forClass(Class.class);
-        verify(processorFactory, times(4)).get(clazz.capture());
+        verify(processorFactory, times(4)).callProcessorFunction(clazz.capture());
 
         List<Class> outputClasses = clazz.getAllValues();
         assertTrue(outputClasses.contains(OrderCreatedEvent.class));
@@ -191,7 +182,7 @@ public class MetricsTest {
         topRegions = new TopRegions(processorFactory, configuration);
 
         ArgumentCaptor<Class> clazz = ArgumentCaptor.forClass(Class.class);
-        verify(processorFactory, times(1)).get(clazz.capture());
+        verify(processorFactory, times(1)).callProcessorFunction(clazz.capture());
 
         assertEquals(OrderCreatedEvent.class, clazz.getValue());
 

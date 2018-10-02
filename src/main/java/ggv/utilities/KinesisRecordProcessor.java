@@ -13,8 +13,6 @@ import org.apache.avro.reflect.ReflectData;
 import org.apache.avro.reflect.ReflectDatumReader;
 
 import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 
 /**
@@ -31,20 +29,15 @@ import java.util.function.Function;
  */
 @Slf4j
 public class KinesisRecordProcessor<T> implements IRecordProcessor {
-    private Class<T> clazz;
-    private final BlockingQueue<Function<T, ?>> functions;
+    private final Class<T> clazz;
+    private final Function<T, ?> function;
     private final Schema avroSchema;
 
-    public KinesisRecordProcessor(Class<T> clazz) {
+    public KinesisRecordProcessor(Class<T> clazz, Function<T, ?> function) {
         this.clazz = clazz;
-        this.functions = new LinkedBlockingQueue<>();
+        this.function = function;
 
         avroSchema = ReflectData.get().getSchema(clazz);
-    }
-
-    public void addFunction(Function<T, ?> function) {
-        functions.add(function);
-        log.info("Added function {} for {}. Now {} function registered.", function, clazz.getName(), functions.size());
     }
 
     @Override
@@ -62,8 +55,8 @@ public class KinesisRecordProcessor<T> implements IRecordProcessor {
                 final DatumReader<T> datumReader = new ReflectDatumReader<>(avroSchema);
                 T orderEvent = datumReader.read(null, decoder);
 
-                //run all the registered function for the process
-                functions.forEach(function -> function.apply(orderEvent));
+                //run the registered function for the process which calls all the functions in the factory
+                function.apply(orderEvent);
             } catch (IOException e) {
                 log.warn("General IO Exception reading input: {}", e);
             }
