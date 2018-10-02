@@ -66,7 +66,8 @@ public class MetricsTest {
         doReturn(processorQueue).when(processorFactory).get(any());
 
         doAnswer((invocation) -> {
-            invocation.callRealMethod();
+            processorFactory.get(invocation.getArgument(0));
+            processor.addFunction(invocation.getArgument(1));
             return null;
         }).when(processorFactory).addFunction(any(), any());
     }
