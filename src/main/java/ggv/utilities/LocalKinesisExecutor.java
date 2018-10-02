@@ -36,7 +36,9 @@ public class LocalKinesisExecutor {
             //use ssl instead of tls
             System.setProperty("USE_SSL", "true");
 
-            //Run Processes
+            //Run Processes. Note that if your app gets in a bad state it won't be able to clean up after itself and
+            //there might be rogue node executables still running afterwards. You may need to kill them manually before
+            //restarting the app
             Runtime runtime = Runtime.getRuntime();
             String shell = (System.getProperty("os.name").toLowerCase().startsWith("windows")) ? "cmd" : "sh";
 

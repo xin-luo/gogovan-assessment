@@ -15,10 +15,14 @@ import org.apache.avro.reflect.ReflectData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 /**
  * Reads in the configuration settings from application.properties (or env variables) for setting up the app
@@ -26,7 +30,7 @@ import java.util.Map;
 @Slf4j
 @Getter
 @Configuration
-public class ConfigurationProvider {
+public class ConfigurationProvider implements WebMvcConfigurer {
     @Value("${producer.numOrdersPerSecond}")
     private int numOrdersPerSecond;
 
@@ -111,6 +115,9 @@ public class ConfigurationProvider {
     @Value("${ggv.metrics.topShipRegionsNum}")
     private int topShipRegionsNum;
 
+    @Value("${web.numThreads}")
+    private int webNumThreads;
+
     //Disable sending ggv.metrics to Cloudwatch
     @Bean
     public IMetricsFactory getMetricsFactory() {
@@ -131,6 +138,15 @@ public class ConfigurationProvider {
         ReflectData.get().addLogicalTypeConversion(new AvroInstantConverter());
 
         eventClassToStreamMapping = new HashMap<>();
+    }
+
+    /**
+     * This is used by the RestAPIController to divide up the work when serving Fluxes to various client consumers
+     * @param configurer
+     */
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor(new ConcurrentTaskExecutor(Executors.newFixedThreadPool(webNumThreads)));
     }
 
     @PostConstruct

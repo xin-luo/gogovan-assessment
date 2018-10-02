@@ -28,7 +28,7 @@ public class SimulationOrderCreatedEventGenerator {
     private final String[] regions;
     private long eventId;
 
-    private final KinesisEventProducer eventProducer;
+    private final KinesisEventProducer<OrderCreatedEvent> eventProducer;
     private final ScheduledExecutorService executor;
     private final GenerateOrderCreatedEventRunner eventRunner;
     private final Random random;

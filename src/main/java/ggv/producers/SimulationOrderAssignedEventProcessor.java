@@ -25,8 +25,8 @@ public class SimulationOrderAssignedEventProcessor {
     private final double pctOrdersCompleted;
     private final int completeDelayMinSeconds;
     private final int completeDelayMaxSeconds;
-    private final KinesisEventProducer completedEventProducer;
-    private final KinesisEventProducer cancelledEventProducer;
+    private final KinesisEventProducer<OrderCompletedEvent> completedEventProducer;
+    private final KinesisEventProducer<OrderCancelledEvent> cancelledEventProducer;
     private final AvailableDrivers drivers;
     private final ScheduledExecutorService executor;
 
@@ -46,10 +46,7 @@ public class SimulationOrderAssignedEventProcessor {
 
         executor = Executors.newSingleThreadScheduledExecutor();
 
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, (input) -> processOrderAssignedEvent((OrderAssignedEvent) input));
-
-        //alternatively this syntax also works. not sure which is the lesser of the two evils
-        //((KinesisRecordProcessor<OrderAssignedEvent>) kinesisRecordProcessorFactory.get(OrderAssignedEvent.class)).addFunction(this::processOrderAssignedEvent);
+        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::processOrderAssignedEvent);
     }
 
     /**

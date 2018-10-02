@@ -26,7 +26,7 @@ public class KinesisEventProducerFactory {
         eventClassToStream = configuration.getEventClassToStreamMapping();
     }
 
-    public KinesisEventProducer<?> get(Class<?> clazz) {
+    public <E> KinesisEventProducer<E> get(Class<E> clazz) {
         return new KinesisEventProducer<>(eventClassToStream.get(clazz), utilities, clazz);
     }
 }

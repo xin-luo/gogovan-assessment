@@ -20,12 +20,16 @@ import java.util.function.Function;
 /**
  * Implementation of Kinesis's RecordProcessor which, along with the OrdersEventConsumerFactory, allow other classes
  * to easily attach functions to each orders_event Consumer and do separate processing on that event
+ *
+ * The reason for using this design pattern for injecting logic in the processor is that I think an app should have only
+ * one Kinesis consumer per stream. It doesn't make sense resource-wise to have a separate consumer (worker) per class
+ * as it's a waste of resources/processing power and makes it possible for metrics to be desynced.
  * @param <T>
  */
 @Slf4j
 public class KinesisRecordProcessor<T> implements IRecordProcessor {
     private Class<T> clazz;
-    private final BlockingQueue<Function<T, Void>> functions;
+    private final BlockingQueue<Function<T, ?>> functions;
     private final Schema avroSchema;
 
     public KinesisRecordProcessor(Class<T> clazz) {
@@ -35,7 +39,7 @@ public class KinesisRecordProcessor<T> implements IRecordProcessor {
         avroSchema = ReflectData.get().getSchema(clazz);
     }
 
-    public void addFunction(Function<T, Void> function) {
+    public void addFunction(Function<T, ?> function) {
         functions.add(function);
         log.info("Added function {} for {}. Now {} function registered.", function, clazz.getName(), functions.size());
     }
