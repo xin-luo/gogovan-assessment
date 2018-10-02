@@ -44,10 +44,10 @@ public class CurrentAmountsByStatus {
         ordersCancelledPrices = new DoubleAdder();
         ordersCancelledCount = new LongAdder();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, (input) -> setOrderCreatedPrices((OrderCreatedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, (input) -> transferToOrderAssignedPrices((OrderAssignedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, (input) -> transferToOrderCompletedPrices((OrderCompletedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, (input) -> transferToOrderCancelledPrices((OrderCancelledEvent) input));
+        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::setOrderCreatedPrices);
+        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::transferToOrderAssignedPrices);
+        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, this::transferToOrderCompletedPrices);
+        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, this::transferToOrderCancelledPrices);
 
         currentAmountsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(this::emitMetric);
     }

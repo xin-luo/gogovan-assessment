@@ -9,10 +9,6 @@ import java.util.Map;
 /**
  * This is a factory for conveniently generating a KinesisEventProducer for each of the streams we need
  * so that the generators dont have to deal with injecting KinesisUtilities or mapping the class to the stream name
- *
- * There's some nasty type inference going on because factory generates untyped ggv.producers based on the given class
- * so it can support any event without explicitly creating them one by one, at the cost of potentially unsafe calls
- * as the event type is not enforced
  */
 @Slf4j
 @Service

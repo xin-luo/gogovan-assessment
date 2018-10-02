@@ -24,6 +24,9 @@ import java.util.function.Function;
  * The reason for using this design pattern for injecting logic in the processor is that I think an app should have only
  * one Kinesis consumer per stream. It doesn't make sense resource-wise to have a separate consumer (worker) per class
  * as it's a waste of resources/processing power and makes it possible for metrics to be desynced.
+ *
+ * Another possibility is to have each record processor include a stream publisher that the factory controls, and
+ * then each metric consumer can read from that stream (Flux) independently
  * @param <T>
  */
 @Slf4j

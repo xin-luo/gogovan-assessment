@@ -35,7 +35,7 @@ public class TopRegions {
         shipToRegions = new ConcurrentHashMap<>();
         topShipRegionsNum = configuration.getTopShipRegionsNum();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, (input) -> computeTopShipRegions((OrderCreatedEvent) input));
+        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::computeTopShipRegions);
 
         topRegionsMetricsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(this::emitMetric);
     }

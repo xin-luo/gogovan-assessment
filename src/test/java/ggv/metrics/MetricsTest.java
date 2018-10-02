@@ -11,6 +11,8 @@ import org.mockito.Mockito;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -18,9 +20,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class MetricsTest {
-    private ConfigurationProvider configuration = Mockito.mock(ConfigurationProvider.class);
-    private KinesisRecordProcessorFactory processorFactory = Mockito.mock(KinesisRecordProcessorFactory.class);
-    private KinesisRecordProcessor processor = Mockito.mock(KinesisRecordProcessor.class);
+    private final ConfigurationProvider configuration = Mockito.mock(ConfigurationProvider.class);
+    private final KinesisRecordProcessorFactory processorFactory = Mockito.mock(KinesisRecordProcessorFactory.class);
+    private final KinesisRecordProcessor processor = Mockito.mock(KinesisRecordProcessor.class);
+    private final BlockingQueue<KinesisRecordProcessor> processorQueue = new LinkedBlockingQueue<>();
 
     private final String[] regions = new String[]{"a", "b", "c"};
     private final String driverName = "driver";
@@ -54,12 +57,14 @@ public class MetricsTest {
     private TopRegions topRegions;
 
     public MetricsTest() {
+        processorQueue.add(processor);
         when(configuration.getTopShipRegionsNum()).thenReturn(numTopRegions);
 
         currentAmountsByStatus = new CurrentAmountsByStatus(processorFactory, configuration);
         topRegions = new TopRegions(processorFactory, configuration);
 
-        when(processorFactory.get(any())).thenReturn(processor);
+        doReturn(processorQueue).when(processorFactory).get(any());
+
         doAnswer((invocation) -> {
             invocation.callRealMethod();
             return null;

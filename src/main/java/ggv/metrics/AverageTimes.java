@@ -45,10 +45,10 @@ public class AverageTimes {
         ordersCancelledDurations = new LongAdder();
         ordersCancelledCount = new LongAdder();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, (input) -> addOrderCreatedTimestamp((OrderCreatedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, (input) -> setAssignedDurations((OrderAssignedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, (input) -> setCompletedDurations((OrderCompletedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, (input) -> setCancellation((OrderCancelledEvent) input));
+        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::addOrderCreatedTimestamp);
+        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::setAssignedDurations);
+        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, this::setCompletedDurations);
+        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, this::setCancellation);
 
         avgTimesMetricsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(this::emitMetric);
     }

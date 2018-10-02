@@ -11,8 +11,7 @@ import java.util.function.Function;
 
 /**
  * Lazily Generates Kinesis RecordProcessors for any event type and executes them for the first time.
- * Other classes can register call functions to attach to the event processor to avoid needing to make a new consumer per processor
- *
+ * Other classes can register call functions to attach to the event processors to avoid needing to make a new worker per client
  */
 @Slf4j
 @Service

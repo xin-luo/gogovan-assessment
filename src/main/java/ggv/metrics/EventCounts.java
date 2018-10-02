@@ -31,10 +31,10 @@ public class EventCounts {
         ordersCompletedCount = new LongAdder();
         ordersCancelledCount = new LongAdder();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, (input) -> incrementCreatedCount((OrderCreatedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, (input) -> incrementAssignedCount((OrderAssignedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, (input) -> incrementCompletedCount((OrderCompletedEvent) input));
-        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, (input) -> incrementCancelledCount((OrderCancelledEvent) input));
+        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::incrementCreatedCount);
+        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::incrementAssignedCount);
+        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, this::incrementCompletedCount);
+        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, this::incrementCancelledCount);
 
         //Emits a message every x seconds only when the flux is subscribed to
         countsMetricsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(emitter -> {

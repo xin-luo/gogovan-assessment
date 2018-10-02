@@ -14,6 +14,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -26,6 +28,7 @@ public class OrderGeneratedTest {
     private KinesisRecordProcessorFactory processorFactory = Mockito.mock(KinesisRecordProcessorFactory.class);
     private KinesisEventProducerFactory producerFactory = Mockito.mock(KinesisEventProducerFactory.class);
     private KinesisEventProducer producer = Mockito.mock(KinesisEventProducer.class);
+    private BlockingQueue<KinesisRecordProcessor<?>> processorQueue = new LinkedBlockingQueue<>();
     private KinesisRecordProcessor processor = Mockito.mock(KinesisRecordProcessor.class);
     private AvailableDrivers drivers = Mockito.mock(AvailableDrivers.class);
 
@@ -49,6 +52,8 @@ public class OrderGeneratedTest {
     private final OrderCancelledEvent orderCancelledEvent = new OrderCancelledEvent(1, Instant.now(), reasonCancelled);
 
     public OrderGeneratedTest() {
+        processorQueue.add(processor);
+
         when(configuration.getNumOrdersPerSecond()).thenReturn(numOrdersPerSecond);
         when(configuration.getRegions()).thenReturn(regions);
         when(configuration.getPickupTimeMaxDelaySeconds()).thenReturn(pickUpTimeMaxDelaySeconds);
@@ -56,9 +61,10 @@ public class OrderGeneratedTest {
         when(configuration.getAssignDelayMinSeconds()).thenReturn(assignDelayMinSeconds);
         when(configuration.getAssignAdvanceMaxSeconds()).thenReturn(assignDelayMaxSeconds);
         when(configuration.getPctOrdersAssigned()).thenReturn(pctOrdersAssigned);
-
         when(producerFactory.get(any())).thenReturn(producer);
-        when(processorFactory.get(any())).thenReturn(processor);
+
+        doReturn(processorQueue).when(processorFactory).get(any());
+
         doAnswer((invocation) -> {
             invocation.callRealMethod();
             return null;
