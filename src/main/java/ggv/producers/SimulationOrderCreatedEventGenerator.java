@@ -57,7 +57,7 @@ public class SimulationOrderCreatedEventGenerator {
      */
     @PostConstruct
     public void init() {
-        executor.scheduleAtFixedRate(eventRunner, 0, Math.round(1000D/ordersPerSecond), TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(eventRunner, 0, Math.round(1000000D/ordersPerSecond), TimeUnit.MICROSECONDS);
     }
 
     /**
