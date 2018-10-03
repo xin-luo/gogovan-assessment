@@ -1,6 +1,7 @@
-package ggv.utilities;
+package ggv.utilities.streaming;
 
 import com.amazonaws.SDKGlobalConfiguration;
+import ggv.utilities.ConfigurationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

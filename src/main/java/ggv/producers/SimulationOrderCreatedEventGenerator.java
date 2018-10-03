@@ -1,9 +1,9 @@
 package ggv.producers;
 
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisEventProducer;
-import ggv.utilities.KinesisEventProducerFactory;
 import ggv.utilities.pojo.OrderCreatedEvent;
+import ggv.utilities.streaming.EventProducer;
+import ggv.utilities.streaming.EventProducerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ public class SimulationOrderCreatedEventGenerator {
     private final String[] regions;
     private long eventId;
 
-    private final KinesisEventProducer<OrderCreatedEvent> eventProducer;
+    private final EventProducer<OrderCreatedEvent> eventProducer;
     private final ScheduledExecutorService executor;
     private final GenerateOrderCreatedEventRunner eventRunner;
     private final Random random;
@@ -36,7 +36,7 @@ public class SimulationOrderCreatedEventGenerator {
     private final String outputStream;
 
     public SimulationOrderCreatedEventGenerator(ConfigurationProvider configuration,
-                                                KinesisEventProducerFactory kinesisEventProducerFactory) {
+                                                EventProducerFactory eventProducerFactory) {
         ordersPerSecond = configuration.getNumOrdersPerSecond();
         minPrice = configuration.getMinPrice();
         maxPrice = configuration.getMaxPrice();
@@ -45,7 +45,7 @@ public class SimulationOrderCreatedEventGenerator {
         outputStream = configuration.getOrderCreatedStreamName();
         eventId = 0;
 
-        this.eventProducer = kinesisEventProducerFactory.get(OrderCreatedEvent.class);
+        this.eventProducer = eventProducerFactory.get(OrderCreatedEvent.class);
         random = new Random();
 
         executor = Executors.newSingleThreadScheduledExecutor();

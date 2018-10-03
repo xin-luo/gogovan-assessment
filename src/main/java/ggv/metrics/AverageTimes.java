@@ -1,8 +1,8 @@
 package ggv.metrics;
 
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisRecordProcessorFactory;
 import ggv.utilities.pojo.*;
+import ggv.utilities.streaming.FunctionConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -36,7 +36,7 @@ public class AverageTimes {
 
     private final Flux<AverageTimesMetric> avgTimesMetricsProcessor;
 
-    public AverageTimes(KinesisRecordProcessorFactory kinesisRecordProcessorFactory, ConfigurationProvider configuration) {
+    public AverageTimes(FunctionConsumer functionConsumer, ConfigurationProvider configuration) {
         ordersCreatedTimestamps = new ConcurrentHashMap<>();
         ordersAssignedDurations = new LongAdder();
         ordersAssignedCount = new LongAdder();
@@ -45,10 +45,10 @@ public class AverageTimes {
         ordersCancelledDurations = new LongAdder();
         ordersCancelledCount = new LongAdder();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::addOrderCreatedTimestamp);
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::setAssignedDurations);
-        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, this::setCompletedDurations);
-        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, this::setCancellation);
+        functionConsumer.addFunction(OrderCreatedEvent.class, this::addOrderCreatedTimestamp);
+        functionConsumer.addFunction(OrderAssignedEvent.class, this::setAssignedDurations);
+        functionConsumer.addFunction(OrderCompletedEvent.class, this::setCompletedDurations);
+        functionConsumer.addFunction(OrderCancelledEvent.class, this::setCancellation);
 
         avgTimesMetricsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(this::emitMetric);
     }

@@ -1,9 +1,13 @@
 package ggv.producers;
 
-import ggv.utilities.*;
+import ggv.utilities.AvailableDrivers;
+import ggv.utilities.ConfigurationProvider;
 import ggv.utilities.pojo.OrderAssignedEvent;
 import ggv.utilities.pojo.OrderCancelledEvent;
 import ggv.utilities.pojo.OrderCreatedEvent;
+import ggv.utilities.streaming.EventProducer;
+import ggv.utilities.streaming.EventProducerFactory;
+import ggv.utilities.streaming.FunctionConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +30,8 @@ public class SimulationOrderCreatedEventProcessor {
     private final int assignAdvanceMaxSeconds;
     private final int assignDelayMinSeconds;
     private final int assignDelayMaxSeconds;
-    private final KinesisEventProducer<OrderAssignedEvent> assignedEventProducer;
-    private final KinesisEventProducer<OrderCancelledEvent> cancelledEventProducer;
+    private final EventProducer<OrderAssignedEvent> assignedEventProducer;
+    private final EventProducer<OrderCancelledEvent> cancelledEventProducer;
     private final AvailableDrivers drivers;
     private final ScheduledExecutorService executor;
 
@@ -35,8 +39,8 @@ public class SimulationOrderCreatedEventProcessor {
     private static final String PCT_CANCELLATION_REASON = "Cancelled by customer.";
 
     public SimulationOrderCreatedEventProcessor(ConfigurationProvider configuration,
-                                                KinesisRecordProcessorFactory kinesisRecordProcessorFactory,
-                                                KinesisEventProducerFactory kinesisEventProducerFactory,
+                                                FunctionConsumer functionConsumer,
+                                                EventProducerFactory eventProducerFactory,
                                                 AvailableDrivers drivers) {
 
         pctOrdersAssigned = configuration.getPctOrdersAssigned();
@@ -44,13 +48,13 @@ public class SimulationOrderCreatedEventProcessor {
         assignDelayMinSeconds = configuration.getAssignDelayMinSeconds();
         assignDelayMaxSeconds = configuration.getAssignDelayMaxSeconds();
 
-        this.assignedEventProducer = kinesisEventProducerFactory.get(OrderAssignedEvent.class);
-        this.cancelledEventProducer = kinesisEventProducerFactory.get(OrderCancelledEvent.class);
+        this.assignedEventProducer = eventProducerFactory.get(OrderAssignedEvent.class);
+        this.cancelledEventProducer = eventProducerFactory.get(OrderCancelledEvent.class);
         this.drivers = drivers;
 
         executor = Executors.newSingleThreadScheduledExecutor();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::processOrderCreatedEvent);
+        functionConsumer.addFunction(OrderCreatedEvent.class, this::processOrderCreatedEvent);
     }
 
     /**

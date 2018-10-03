@@ -1,18 +1,12 @@
-package ggv.utilities;
+package ggv.utilities.streaming;
 
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.v2.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.types.InitializationInput;
 import com.amazonaws.services.kinesis.clientlibrary.types.ProcessRecordsInput;
 import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownInput;
+import ggv.utilities.serde.ByteDeserializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.Schema;
-import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.DatumReader;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.reflect.ReflectData;
-import org.apache.avro.reflect.ReflectDatumReader;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 /**
@@ -31,13 +25,13 @@ import java.util.function.Function;
 public class KinesisRecordProcessor<T> implements IRecordProcessor {
     private final Class<T> clazz;
     private final Function<T, ?> function;
-    private final Schema avroSchema;
+    private final ByteDeserializer<T> deserializer;
 
-    public KinesisRecordProcessor(Class<T> clazz, Function<T, ?> function) {
+
+    public KinesisRecordProcessor(Class<T> clazz, Function<T, ?> function, ByteDeserializer<T> deserializer) {
         this.clazz = clazz;
         this.function = function;
-
-        avroSchema = ReflectData.get().getSchema(clazz);
+        this.deserializer = deserializer;
     }
 
     @Override
@@ -50,16 +44,10 @@ public class KinesisRecordProcessor<T> implements IRecordProcessor {
         log.debug("Processing {} {} records...", processRecordsInput.getRecords().size(), clazz);
 
         processRecordsInput.getRecords().parallelStream().forEach(record -> {
-            try {
-                final BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(record.getData().array(), null);
-                final DatumReader<T> datumReader = new ReflectDatumReader<>(avroSchema);
-                T orderEvent = datumReader.read(null, decoder);
+            T orderEvent = deserializer.deserialize(record.getData().array());
 
-                //run the registered function for the process which calls all the functions in the factory
-                function.apply(orderEvent);
-            } catch (IOException e) {
-                log.warn("General IO Exception reading input: {}", e);
-            }
+            //run the registered function for the process which calls all the functions in the factory
+            function.apply(orderEvent);
         });
 
         log.debug("Processed {} {} records in a batch", processRecordsInput.getRecords().size(), clazz);

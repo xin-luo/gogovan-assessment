@@ -1,5 +1,7 @@
-package ggv.utilities;
+package ggv.utilities.streaming;
 
+import ggv.utilities.ConfigurationProvider;
+import ggv.utilities.serde.SerdeFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -13,16 +15,18 @@ import java.util.Map;
 @Slf4j
 @Service
 @DependsOn("localKinesisExecutor")
-public class KinesisEventProducerFactory {
+public class KinesisEventProducerFactory implements EventProducerFactory {
     private final Map<Class<?>, String> eventClassToStream;
     private final KinesisUtilities utilities;
+    private final SerdeFactory serdeFactory;
 
-    public KinesisEventProducerFactory(KinesisUtilities utilities, ConfigurationProvider configuration) {
+    public KinesisEventProducerFactory(KinesisUtilities utilities, ConfigurationProvider configuration, SerdeFactory serdeFactory) {
         this.utilities = utilities;
         eventClassToStream = configuration.getEventClassToStreamMapping();
+        this.serdeFactory = serdeFactory;
     }
 
     public <E> KinesisEventProducer<E> get(Class<E> clazz) {
-        return new KinesisEventProducer<>(eventClassToStream.get(clazz), utilities, clazz);
+        return new KinesisEventProducer<>(eventClassToStream.get(clazz), utilities, serdeFactory.getSerializer(clazz));
     }
 }

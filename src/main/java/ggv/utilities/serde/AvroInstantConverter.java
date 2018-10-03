@@ -1,4 +1,4 @@
-package ggv.utilities;
+package ggv.utilities.serde;
 
 import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;

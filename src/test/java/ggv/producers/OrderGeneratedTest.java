@@ -1,10 +1,12 @@
 package ggv.producers;
 
-import ggv.utilities.*;
+import ggv.utilities.AvailableDrivers;
+import ggv.utilities.ConfigurationProvider;
 import ggv.utilities.pojo.OrderAssignedEvent;
 import ggv.utilities.pojo.OrderCancelledEvent;
 import ggv.utilities.pojo.OrderCompletedEvent;
 import ggv.utilities.pojo.OrderCreatedEvent;
+import ggv.utilities.streaming.*;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -25,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 public class OrderGeneratedTest {
     private ConfigurationProvider configuration = Mockito.mock(ConfigurationProvider.class);
-    private KinesisRecordProcessorFactory processorFactory = Mockito.mock(KinesisRecordProcessorFactory.class);
+    private KinesisFunctionConsumer processorFactory = Mockito.mock(KinesisFunctionConsumer.class);
     private KinesisEventProducerFactory producerFactory = Mockito.mock(KinesisEventProducerFactory.class);
     private KinesisEventProducer producer = Mockito.mock(KinesisEventProducer.class);
     private BlockingQueue<KinesisRecordProcessor<?>> processorQueue = new LinkedBlockingQueue<>();

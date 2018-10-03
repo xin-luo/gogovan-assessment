@@ -1,9 +1,9 @@
 package ggv.metrics;
 
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisRecordProcessorFactory;
 import ggv.utilities.pojo.OrderCreatedEvent;
 import ggv.utilities.pojo.TopRegionsMetric;
+import ggv.utilities.streaming.KinesisFunctionConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -30,12 +30,12 @@ public class TopRegions {
     private final int topShipRegionsNum;
     private final Flux<TopRegionsMetric> topRegionsMetricsProcessor;
 
-    public TopRegions(KinesisRecordProcessorFactory kinesisRecordProcessorFactory, ConfigurationProvider configuration) {
+    public TopRegions(KinesisFunctionConsumer kinesisFunctionConsumer, ConfigurationProvider configuration) {
         shipFromRegions = new ConcurrentHashMap<>();
         shipToRegions = new ConcurrentHashMap<>();
         topShipRegionsNum = configuration.getTopShipRegionsNum();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::computeTopShipRegions);
+        kinesisFunctionConsumer.addFunction(OrderCreatedEvent.class, this::computeTopShipRegions);
 
         topRegionsMetricsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(this::emitMetric);
     }

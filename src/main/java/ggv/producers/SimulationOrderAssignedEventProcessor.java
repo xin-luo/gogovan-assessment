@@ -1,9 +1,13 @@
 package ggv.producers;
 
-import ggv.utilities.*;
+import ggv.utilities.AvailableDrivers;
+import ggv.utilities.ConfigurationProvider;
 import ggv.utilities.pojo.OrderAssignedEvent;
 import ggv.utilities.pojo.OrderCancelledEvent;
 import ggv.utilities.pojo.OrderCompletedEvent;
+import ggv.utilities.streaming.EventProducer;
+import ggv.utilities.streaming.EventProducerFactory;
+import ggv.utilities.streaming.KinesisFunctionConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,28 +29,28 @@ public class SimulationOrderAssignedEventProcessor {
     private final double pctOrdersCompleted;
     private final int completeDelayMinSeconds;
     private final int completeDelayMaxSeconds;
-    private final KinesisEventProducer<OrderCompletedEvent> completedEventProducer;
-    private final KinesisEventProducer<OrderCancelledEvent> cancelledEventProducer;
+    private final EventProducer<OrderCompletedEvent> completedEventProducer;
+    private final EventProducer<OrderCancelledEvent> cancelledEventProducer;
     private final AvailableDrivers drivers;
     private final ScheduledExecutorService executor;
 
     private static final String[] CANCELLATION_REASONS = new String[]{"Accident during journey", "Customer cancelled trip", "Lost connection"};
 
     public SimulationOrderAssignedEventProcessor(ConfigurationProvider configuration,
-                                                 KinesisRecordProcessorFactory kinesisRecordProcessorFactory,
-                                                 KinesisEventProducerFactory kinesisEventProducerFactory,
+                                                 KinesisFunctionConsumer kinesisFunctionConsumer,
+                                                 EventProducerFactory eventProducerFactory,
                                                  AvailableDrivers drivers)  {
         pctOrdersCompleted = configuration.getPctOrdersCompleted();
         completeDelayMinSeconds = configuration.getCompleteDelayMinSeconds();
         completeDelayMaxSeconds = configuration.getCompleteDelayMaxSeconds();
 
-        this.completedEventProducer = kinesisEventProducerFactory.get(OrderCompletedEvent.class);
-        this.cancelledEventProducer = kinesisEventProducerFactory.get(OrderCancelledEvent.class);
+        this.completedEventProducer = eventProducerFactory.get(OrderCompletedEvent.class);
+        this.cancelledEventProducer = eventProducerFactory.get(OrderCancelledEvent.class);
         this.drivers = drivers;
 
         executor = Executors.newSingleThreadScheduledExecutor();
 
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::processOrderAssignedEvent);
+        kinesisFunctionConsumer.addFunction(OrderAssignedEvent.class, this::processOrderAssignedEvent);
     }
 
     /**

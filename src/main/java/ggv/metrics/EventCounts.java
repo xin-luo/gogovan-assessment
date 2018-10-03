@@ -2,8 +2,8 @@ package ggv.metrics;
 
 import ggv.utilities.AvailableDrivers;
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisRecordProcessorFactory;
 import ggv.utilities.pojo.*;
+import ggv.utilities.streaming.KinesisFunctionConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,16 +25,16 @@ public class EventCounts {
 
     private final Flux<OrderCountsMetric> countsMetricsProcessor;
 
-    public EventCounts(KinesisRecordProcessorFactory kinesisRecordProcessorFactory, AvailableDrivers drivers, ConfigurationProvider configuration) {
+    public EventCounts(KinesisFunctionConsumer kinesisFunctionConsumer, AvailableDrivers drivers, ConfigurationProvider configuration) {
         ordersCreatedCount = new LongAdder();
         ordersAssignedCount = new LongAdder();
         ordersCompletedCount = new LongAdder();
         ordersCancelledCount = new LongAdder();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::incrementCreatedCount);
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::incrementAssignedCount);
-        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, this::incrementCompletedCount);
-        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, this::incrementCancelledCount);
+        kinesisFunctionConsumer.addFunction(OrderCreatedEvent.class, this::incrementCreatedCount);
+        kinesisFunctionConsumer.addFunction(OrderAssignedEvent.class, this::incrementAssignedCount);
+        kinesisFunctionConsumer.addFunction(OrderCompletedEvent.class, this::incrementCompletedCount);
+        kinesisFunctionConsumer.addFunction(OrderCancelledEvent.class, this::incrementCancelledCount);
 
         //Emits a message every x seconds only when the flux is subscribed to
         countsMetricsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(emitter -> {

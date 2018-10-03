@@ -9,6 +9,7 @@ import ggv.utilities.pojo.OrderAssignedEvent;
 import ggv.utilities.pojo.OrderCancelledEvent;
 import ggv.utilities.pojo.OrderCompletedEvent;
 import ggv.utilities.pojo.OrderCreatedEvent;
+import ggv.utilities.serde.AvroInstantConverter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.reflect.ReflectData;

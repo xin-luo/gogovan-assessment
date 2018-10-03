@@ -1,8 +1,8 @@
 package ggv.metrics;
 
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisRecordProcessorFactory;
 import ggv.utilities.pojo.*;
+import ggv.utilities.streaming.KinesisFunctionConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -35,7 +35,7 @@ public class CurrentAmountsByStatus {
 
     private final Flux<CurrentAmountsByStatusMetric> currentAmountsProcessor;
 
-    public CurrentAmountsByStatus(KinesisRecordProcessorFactory kinesisRecordProcessorFactory, ConfigurationProvider configuration) {
+    public CurrentAmountsByStatus(KinesisFunctionConsumer kinesisFunctionConsumer, ConfigurationProvider configuration) {
         ordersCreatedPrices = new ConcurrentHashMap<>();
         ordersAssignedPrices = new ConcurrentHashMap<>();
         ordersTTL = new ConcurrentHashMap<>();
@@ -44,10 +44,10 @@ public class CurrentAmountsByStatus {
         ordersCancelledPrices = new DoubleAdder();
         ordersCancelledCount = new LongAdder();
 
-        kinesisRecordProcessorFactory.addFunction(OrderCreatedEvent.class, this::setOrderCreatedPrices);
-        kinesisRecordProcessorFactory.addFunction(OrderAssignedEvent.class, this::transferToOrderAssignedPrices);
-        kinesisRecordProcessorFactory.addFunction(OrderCompletedEvent.class, this::transferToOrderCompletedPrices);
-        kinesisRecordProcessorFactory.addFunction(OrderCancelledEvent.class, this::transferToOrderCancelledPrices);
+        kinesisFunctionConsumer.addFunction(OrderCreatedEvent.class, this::setOrderCreatedPrices);
+        kinesisFunctionConsumer.addFunction(OrderAssignedEvent.class, this::transferToOrderAssignedPrices);
+        kinesisFunctionConsumer.addFunction(OrderCompletedEvent.class, this::transferToOrderCompletedPrices);
+        kinesisFunctionConsumer.addFunction(OrderCancelledEvent.class, this::transferToOrderCancelledPrices);
 
         currentAmountsProcessor = Flux.interval(Duration.ofSeconds(configuration.getEmitFrequencySeconds())).map(this::emitMetric);
     }

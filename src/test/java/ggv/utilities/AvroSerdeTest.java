@@ -3,6 +3,7 @@ package ggv.utilities;
 import ggv.utilities.pojo.OrderAssignedEvent;
 import ggv.utilities.pojo.OrderCompletedEvent;
 import ggv.utilities.pojo.OrderCreatedEvent;
+import ggv.utilities.serde.AvroInstantConverter;
 import org.apache.avro.Schema;
 import org.apache.avro.io.*;
 import org.apache.avro.reflect.ReflectData;

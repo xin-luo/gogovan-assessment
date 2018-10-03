@@ -1,4 +1,4 @@
-package ggv.utilities;
+package ggv.utilities.streaming;
 
 import com.amazonaws.services.kinesis.model.AmazonKinesisException;
 import com.amazonaws.services.kinesis.model.LimitExceededException;
@@ -9,16 +9,9 @@ import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import ggv.utilities.serde.ByteSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.Schema;
-import org.apache.avro.io.BinaryEncoder;
-import org.apache.avro.io.DatumWriter;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.reflect.ReflectData;
-import org.apache.avro.reflect.ReflectDatumWriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -27,16 +20,15 @@ import java.util.UUID;
  * to a particular Kinesis stream
  */
 @Slf4j
-public class KinesisEventProducer<T> {
+public class KinesisEventProducer<T> implements EventProducer<T> {
     private final String streamName;
     private final KinesisProducer producer;
-    private final Schema schema;
+    private final ByteSerializer<T> serializer;
 
-    protected KinesisEventProducer(String streamName, KinesisUtilities utilities, Class<T> clazz) {
+    protected KinesisEventProducer(String streamName, KinesisUtilities utilities, ByteSerializer<T> serializer) {
         this.streamName = streamName;
         producer = utilities.getKinesisProducer();
-
-        schema = ReflectData.get().getSchema(clazz);
+        this.serializer = serializer;
 
         try {
             utilities.waitForStreamActive(streamName, false);
@@ -55,20 +47,9 @@ public class KinesisEventProducer<T> {
      * Returns true if event has been accepted into the events queue. Note that a true return value doesn't necessarily mean
      * the event is guaranteed to be sent to Kinesis if the application crashes between the sendEvent call and the SendMessagesRunnable getting called
      */
-    public void sendEvent(T object) {
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final BinaryEncoder binaryEncoder = EncoderFactory.get().binaryEncoder(byteArrayOutputStream, null);
-        try {
-            DatumWriter<T> writer = new ReflectDatumWriter<>(schema);
-            writer.write(object, binaryEncoder);
-            binaryEncoder.flush();
-            byteArrayOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.error("IO Exception while attempting to serialize object {}: {}", object, e);
-        }
-
-        sendEvent(byteArrayOutputStream.toByteArray(), UUID.randomUUID().toString());
+    public void sendEvent(T event) {
+        byte[] serializedEvent = serializer.serialize(event);
+        sendEvent(serializedEvent, UUID.randomUUID().toString());
     }
 
     private void sendEvent(byte[] message, String key) {

@@ -1,7 +1,7 @@
 package ggv.metrics;
 
 import ggv.utilities.ConfigurationProvider;
-import ggv.utilities.KinesisRecordProcessorFactory;
+import ggv.utilities.streaming.KinesisFunctionConsumer;
 import ggv.utilities.pojo.*;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 
 public class MetricsTest {
     private final ConfigurationProvider configuration = Mockito.mock(ConfigurationProvider.class);
-    private final KinesisRecordProcessorFactory processorFactory = Mockito.mock(KinesisRecordProcessorFactory.class);
+    private final KinesisFunctionConsumer processorFactory = Mockito.mock(KinesisFunctionConsumer.class);
 
     private final String[] regions = new String[]{"a", "b", "c"};
     private final String driverName = "driver";
